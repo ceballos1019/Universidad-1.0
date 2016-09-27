@@ -10,6 +10,7 @@ public class GameGrid : MonoBehaviour {
 	private GameObject[] fruits;
 	private GridItem[,] items;
 	private GridItem currentlySelectedItem;
+	public static int minItemsForMatch = 3;
 
 	// Use this for initialization
 	void Start ()
@@ -17,7 +18,7 @@ public class GameGrid : MonoBehaviour {
 		GetFruits ();	
 		FillGrid ();
 		GridItem.OnMouseOverItemEventHandler += OnMouseOverItem;
-		List<GridItem> matchesForItem = SearchHorizontally (items [3, 3]);
+		/*List<GridItem> matchesForItem = SearchHorizontally (items [3, 3]);
 		if (matchesForItem.Count >= 3) {
 			Debug.Log ("Hay un match en el elemento 3,3");
 		} else {
@@ -28,7 +29,7 @@ public class GameGrid : MonoBehaviour {
 			Debug.Log ("Hay un match V en el elemento 3,3");
 		} else {
 			Debug.Log ("No hay match V");
-		}
+		}*/
 		//Destroy (items [5, 1].gameObject);
 	}
 
@@ -97,7 +98,7 @@ public class GameGrid : MonoBehaviour {
 
 			if (xDiff + yDiff == 1) {
 				// Permitir swap
-				StartCoroutine(Swap(currentlySelectedItem,item));
+				StartCoroutine(TryMatch(currentlySelectedItem,item));
 			} 
 			else
 			{
@@ -105,6 +106,31 @@ public class GameGrid : MonoBehaviour {
 				Debug.LogError("Esos items a mas de 1 unidad de distancia uno del otro");
 			}
 			currentlySelectedItem = null;
+		}
+	}
+
+	IEnumerator TryMatch (GridItem a, GridItem b)
+	{
+		yield return StartCoroutine (Swap (a, b));
+		MatchInfo matchA = GetMatchInformation (a);
+		MatchInfo matchB = GetMatchInformation (b);
+		if (!matchA.validMatch && !matchB.validMatch) {
+			yield return StartCoroutine (Swap (a, b));
+			yield break;
+		}
+		if (matchA.validMatch) {
+			yield return StartCoroutine(DestroyItems(matchA.match));
+		}
+		if (matchB.validMatch) {
+			yield return StartCoroutine(DestroyItems(matchB  .match));
+		}
+	}
+
+	IEnumerator DestroyItems(List<GridItem> items)
+	{
+		foreach (GridItem i in items) {
+			yield return StartCoroutine (i.transform.Scale (Vector3.zero, 1f));
+			Destroy (i.gameObject);
 		}
 	}
 
@@ -162,6 +188,66 @@ public class GameGrid : MonoBehaviour {
 			up++;
 		}
 		return vItems;
+	}
+
+
+	MatchInfo GetMatchInformation(GridItem item)
+	{
+		MatchInfo n = new MatchInfo ();
+		n.match = null;
+		List<GridItem> hMatch = SearchHorizontally (item);
+		List<GridItem> vMatch = SearchVertically (item);
+
+		if (hMatch.Count >= minItemsForMatch && hMatch.Count > vMatch.Count) {
+			//Definir información para match horizontal
+			n.matchStartingX = GetMinimumX(hMatch);
+			n.matchEndingX = GetMaximumX (hMatch);
+			n.matchSartingY = n.matchEndingY = hMatch [0].y;
+			n.match = hMatch;
+		} else if (vMatch.Count >= minItemsForMatch) {
+			//Definir informacion para match vertical
+			n.matchSartingY = GetMinimumY(vMatch);
+			n.matchEndingY = GetMaximumY (vMatch);
+			n.matchStartingX = n.matchEndingX = vMatch [0].x;
+			n.match = vMatch;
+		}
+		return n;
+	}
+
+	int GetMinimumX (List<GridItem> items)
+	{
+		float[] indices = new float[items.Count];
+		for (int i = 0; i < indices.Length; i++) {
+			indices [i] = items [i].x;
+		}
+		return (int)Mathf.Min (indices);
+	}
+
+	int GetMaximumX (List<GridItem> items)
+	{
+		float[] indices = new float[items.Count];
+		for (int i = 0; i < indices.Length; i++) {
+			indices [i] = items [i].x;
+		}
+		return (int)Mathf.Max (indices);
+	}
+
+	int GetMinimumY (List<GridItem> items)
+	{
+		float[] indices = new float[items.Count];
+		for (int i = 0; i < indices.Length; i++) {
+			indices [i] = items [i].y;
+		}
+		return (int)Mathf.Min (indices);
+	}
+
+	int GetMaximumY (List<GridItem> items)
+	{
+		float[] indices = new float[items.Count];
+		for (int i = 0; i < indices.Length; i++) {
+			indices [i] = items [i].y;
+		}
+		return (int)Mathf.Max (indices);
 	}
 
 	void GetFruits ()
