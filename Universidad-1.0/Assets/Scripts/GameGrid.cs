@@ -12,12 +12,16 @@ public class GameGrid : MonoBehaviour
 	private GridItem[,] items;
 	private GridItem currentlySelectedItem;
 	public static int minItemsForMatch = 3;
+	public float delayBetweenMatches = 0.2f;
+	public bool canPlay;
 
 	// Use this for initialization
 	void Start ()
 	{
-		GetFruits ();	
+		canPlay = true;
+		GetImageResources ();	
 		FillGrid ();
+		ClearGrid ();
 		GridItem.OnMouseOverItemEventHandler += OnMouseOverItem;
 	}
 
@@ -36,6 +40,22 @@ public class GameGrid : MonoBehaviour
 			for (int y = 0; y < ySize; y++) {
 				// Instanciar el item en la posicion (x,y)
 				items [x, y] = InstantiateFruit (x, y);
+			}
+		}
+	}
+
+	/*Resolver las combinaciones que se generan a partir de un movimiento*/
+	void ClearGrid()
+	{
+		for (int x = 0; x < xSize; x++) {
+			for (int y = 0; y < ySize; y++) {
+				/*Buscar combinación en cada item*/
+				MatchInfo matchInfo = GetMatchInformation (items [x, y]);
+				if (matchInfo.validMatch) {
+					Destroy (items[x,y].gameObject);
+					items[x,y]=InstantiateFruit (x, y);
+					y--; //Se debe analizar tambien el item que se acaba de crear
+				}
 			}
 		}
 	}
@@ -73,7 +93,7 @@ public class GameGrid : MonoBehaviour
 	void OnMouseOverItem (GridItem item)
 	{
 		/*Si el segundo item seleccionado es igual al primero*/
-		if (currentlySelectedItem == item) {
+		if (currentlySelectedItem == item || !canPlay) {
 			return;
 		}
 
@@ -99,9 +119,10 @@ public class GameGrid : MonoBehaviour
 	/*Intentar una jugada*/
 	IEnumerator TryMatch (GridItem a, GridItem b)
 	{
+		canPlay = false;
 		yield return StartCoroutine (Swap (a, b));  //Hacer el swap
 
-		/*Buscar combinaciones con ambos items**/
+		/*Buscar combinaciones con ambos items*/
 		MatchInfo matchA = GetMatchInformation (a); 
 		MatchInfo matchB = GetMatchInformation (b); 
 
@@ -114,11 +135,74 @@ public class GameGrid : MonoBehaviour
 		/*El swap genera una combinación con alguno de los dos items*/
 		if (matchA.validMatch) {
 			yield return StartCoroutine (DestroyItems (matchA.match));
+			yield return new WaitForSeconds (delayBetweenMatches);
+			yield return StartCoroutine(UpdateGridAfterMatch(matchA));
+
+				
 		}
 		if (matchB.validMatch) {
 			yield return StartCoroutine (DestroyItems (matchB.match));
+			yield return new WaitForSeconds (delayBetweenMatches);
+			yield return StartCoroutine(UpdateGridAfterMatch(matchB));
 		}	
+		canPlay = true;
 	}
+
+	/*Generar nuevos items cada que se realiza una combinación*/
+	IEnumerator UpdateGridAfterMatch(MatchInfo match)
+	{
+		if (match.matchStartingY == match.matchEndingY) {
+			//Combinación horizontal
+			for (int x = match.matchStartingX; x <= match.matchEndingX; x++) {
+				for(int y = match.matchStartingY; y < ySize - 1; y++){
+					/*Actualizar los indices en la matriz de items, de los items por arriba de la combinación*/
+					GridItem upperIndex = items [x, y + 1];
+					GridItem current = items [x, y];
+					items [x, y] = upperIndex;
+					items [x, y + 1] = current;
+					items [x, y].OnItemPositionChanged (items[x,y].x, items[x,y].y-1); //Settearle la nueva posición
+				}
+				items[x,ySize -1]=InstantiateFruit (x, ySize - 1); //Crear el nuevo item en la ultima fila
+			}
+		}
+		else if(match.matchEndingX==match.matchStartingX){
+			//Combinación vertical
+			int matchHeight = 1+(match.matchEndingY - match.matchStartingY); //tamaño de la combinación
+			for(int y=match.matchStartingY + matchHeight; y <= ySize -1;y++){
+				/*Actualizar los indices en la matriz de items, de los items por arriba de la combinación*/
+				GridItem lowerIndex = items [match.matchStartingX, y - matchHeight];
+				GridItem current = items [match.matchStartingX, y];
+				items [match.matchStartingX, y - matchHeight] = current;
+				items [match.matchStartingX, y] = lowerIndex;
+				//items [match.matchStartingX, y - matchHeight].OnItemPositionChanged (items [match.matchStartingX, y - matchHeight].x, items [match.matchStartingX, y - matchHeight].y-matchHeight);
+			}
+			/* ????????????????*/
+			for (int y = 0; y < ySize - matchHeight; y++) {
+				items [match.matchStartingX, y].OnItemPositionChanged (match.matchStartingX, y);
+			}
+
+			/*Crear los items para rellenar la cuadricula*/
+			for (int i = 0; i < match.match.Count; i++) {
+				items [match.matchStartingX, (ySize - 1) - i] = InstantiateFruit (match.matchStartingX, (ySize - 1) - i);
+			}
+		}
+
+		/*Cada que se rellene la cuadricula con nuevos items, se debe verificar si se formaron mas combinaciones
+		  ¿Se puede mejorar?*/
+		for (int x = 0; x < xSize; x++) {
+			for (int y = 0; y < ySize; y++) {
+				/*Buscar combinación en cada item*/
+				MatchInfo matchInfo = GetMatchInformation (items [x, y]);
+				if (matchInfo.validMatch) {
+					//yield return new WaitForSeconds (delayBetweenMatches);
+					yield return StartCoroutine(DestroyItems(matchInfo.match));
+					yield return new WaitForSeconds (delayBetweenMatches);
+					yield return StartCoroutine (UpdateGridAfterMatch (matchInfo));
+				}
+			}
+		}
+	}
+
 
 	/*Destruir los items de una combinación*/
 	IEnumerator DestroyItems (List<GridItem> items)
@@ -126,9 +210,7 @@ public class GameGrid : MonoBehaviour
 		foreach (GridItem i in items) {
 			yield return StartCoroutine (i.transform.Scale (Vector3.zero, 0.05f)); //Reducir tamaño (efecto visual)
 			Destroy (i.gameObject); //Destruir
-			yield return new WaitForSeconds(0.05f);
 		}
-		//yield return new WaitForSeconds (1f);
 	}
 
 	IEnumerator Swap (GridItem a, GridItem b)
@@ -219,11 +301,11 @@ public class GameGrid : MonoBehaviour
 			/*Definir información para combinación horizontal*/
 			info.matchStartingX = GetMinimumX (hMatch);
 			info.matchEndingX = GetMaximumX (hMatch);
-			info.matchSartingY = info.matchEndingY = hMatch [0].y;
+			info.matchStartingY = info.matchEndingY = hMatch [0].y;
 			info.match = hMatch;
 		} else if (vMatch.Count >= minItemsForMatch) {
 			/*Definir informacion para combinación vertical*/
-			info.matchSartingY = GetMinimumY (vMatch);
+			info.matchStartingY = GetMinimumY (vMatch);
 			info.matchEndingY = GetMaximumY (vMatch);
 			info.matchStartingX = info.matchEndingX = vMatch [0].x;
 			info.match = vMatch;
@@ -271,11 +353,12 @@ public class GameGrid : MonoBehaviour
 		return (int)Mathf.Max (indices);
 	}
 
-	void GetFruits ()
+	void GetImageResources ()
 	{
 		/*Cargar las imagenes*/
-		fruits = Resources.LoadAll<GameObject> ("Prefabs/Other");
+		//fruits = Resources.LoadAll<GameObject> ("Prefabs/Other");
 		//fruits = Resources.LoadAll<GameObject> ("Prefabs");
+		fruits = Resources.LoadAll<GameObject> ("Prefabs/Food");
 		print (fruits.Length);
 
 		/*Asignar un id a cada imagen*/
@@ -300,8 +383,6 @@ public class GameGrid : MonoBehaviour
 				if (items [x, y] == null) {
 					Debug.Log (string.Format("{0} {1}",x,y));
 				}
-				//Debug.Log (items [x, y]);
-
 			}
 		}
 	}
