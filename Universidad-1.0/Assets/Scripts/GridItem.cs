@@ -25,8 +25,7 @@ public class GridItem : MonoBehaviour {
 
 	void OnMouseDown()
 	{
-		print ("Click sobre este item!");
-		if (OnMouseOverItemEventHandler != null) 
+			if (OnMouseOverItemEventHandler != null) 
 		{
 			OnMouseOverItemEventHandler (this);
 		}

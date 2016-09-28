@@ -1,4 +1,4 @@
 sceneSetups:
-- path: Assets/FeedGame.unity
+- path: Assets/Scenes/FeedGame.unity
   isLoaded: 1
   isActive: 1

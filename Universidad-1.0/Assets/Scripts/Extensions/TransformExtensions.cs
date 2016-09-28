@@ -2,8 +2,9 @@
 using System.Collections;
 
 public static class TransformExtension{
-	public static IEnumerator Move (this Transform t, Vector3 target, float duration)
-	{
+	
+	public static IEnumerator Move (this Transform t, Vector3 target, float duration)	
+	{		
 		Vector3 diffVector = (target - t.position);
 		float diffLength = diffVector.magnitude;
 		diffVector.Normalize ();
