@@ -136,9 +136,7 @@ public class GameGrid : MonoBehaviour
 		if (matchA.validMatch) {
 			yield return StartCoroutine (DestroyItems (matchA.match));
 			yield return new WaitForSeconds (delayBetweenMatches);
-			yield return StartCoroutine(UpdateGridAfterMatch(matchA));
-
-				
+			yield return StartCoroutine(UpdateGridAfterMatch(matchA));				
 		}
 		if (matchB.validMatch) {
 			yield return StartCoroutine (DestroyItems (matchB.match));
@@ -182,7 +180,7 @@ public class GameGrid : MonoBehaviour
 			}
 
 			/*Crear los items para rellenar la cuadricula*/
-			for (int i = 0; i < match.match.Count; i++) {
+			for (int i = 0; i < matchHeight; i++) {
 				items [match.matchStartingX, (ySize - 1) - i] = InstantiateFruit (match.matchStartingX, (ySize - 1) - i);
 			}
 		}
@@ -359,7 +357,6 @@ public class GameGrid : MonoBehaviour
 		//fruits = Resources.LoadAll<GameObject> ("Prefabs/Other");
 		//fruits = Resources.LoadAll<GameObject> ("Prefabs");
 		fruits = Resources.LoadAll<GameObject> ("Prefabs/Food");
-		print (fruits.Length);
 
 		/*Asignar un id a cada imagen*/
 		for (int i = 0; i < fruits.Length; i++) {

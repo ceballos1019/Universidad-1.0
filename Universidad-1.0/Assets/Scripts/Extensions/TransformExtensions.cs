@@ -31,6 +31,6 @@ public static class TransformExtension{
 			counter+=Time.deltaTime;
 			yield return null;
 		}
-		t.localScale = target;
+		t.localScale = target; 
 	}
 }
