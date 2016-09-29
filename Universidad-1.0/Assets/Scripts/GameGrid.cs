@@ -30,8 +30,20 @@ public class GameGrid : MonoBehaviour
 		GridItem.OnMouseOverItemEventHandler -= OnMouseOverItem;
 	}
 
+	/*Cargar las imagenes*/
+	void GetImageResources ()
+	{
+		//fruits = Resources.LoadAll<GameObject> ("Prefabs/Other");
+		//fruits = Resources.LoadAll<GameObject> ("Prefabs");
+		fruits = Resources.LoadAll<GameObject> ("Prefabs/Food");
 
-	// Llenar la cuddricula inicial sin generar combinaciones
+		/*Asignar un id a cada imagen*/
+		for (int i = 0; i < fruits.Length; i++) {
+			fruits [i].GetComponent<GridItem> ().id = i;
+		}
+	}
+
+	/*Llenar la cuddricula inicial sin generar combinaciones*/
 	void FillGrid ()
 	{	
 		items = new GridItem[xSize, ySize];
@@ -42,6 +54,35 @@ public class GameGrid : MonoBehaviour
 				items [x, y] = InstantiateFruit (x, y);
 			}
 		}
+	}
+
+	//Instanciar un item dada su posición en (x,y)
+	GridItem InstantiateFruit (int x, int y)
+	{
+		bool condition = false; //Saber si el item a crear genera una combinación
+		int randomId = 0; 
+		do {
+
+			//Seleccionar un tipo aleatorio de alimento
+			randomId = Random.Range (0, fruits.Length);
+			/*
+			// Validar que el proximo objeto a crear no genere una combinación
+			if (x >= 2 && y >= 2) {
+				condition = (items [x - 1, y].id == randomId && items [x - 2, y].id == randomId) || 
+					(items [x, y - 1].id == randomId && items [x, y - 2].id == randomId);
+			} else if (y >= 2) {
+				condition = (items [x, y - 1].id == randomId && items [x, y - 2].id == randomId);
+			} else if (x >= 2) {
+				condition = (items [x - 1, y].id == randomId && items [x - 2, y].id == randomId);
+			}*/
+
+		} while(condition);
+
+		// Crear el GridItem
+		GameObject randomFruit = fruits [randomId];	
+		GridItem newFruit = ((GameObject)Instantiate (randomFruit, new Vector3 (x + fruitWidth, y), Quaternion.identity)).GetComponent<GridItem> ();
+		newFruit.OnItemPositionChanged (x, y);
+		return newFruit;
 	}
 
 	/*Resolver las combinaciones que se generan a partir de un movimiento*/
@@ -60,39 +101,120 @@ public class GameGrid : MonoBehaviour
 		}
 	}
 
-	//Instanciar un item dada su posición en (x,y)
-	GridItem InstantiateFruit (int x, int y)
+	/*Obtener informacion de posibles combinaciones alrededor de un item*/
+	MatchInfo GetMatchInformation (GridItem item)
 	{
-		bool condition = false; //Saber si el item a crear genera una combinación
-		int randomId = 0; 
-		do {
+		MatchInfo info = new MatchInfo ();
+		info.match = null;
 
-			//Seleccionar un tipo aleatorio de alimento
-			randomId = Random.Range (0, fruits.Length);
-			/*
-			// Validar que el proximo objeto a crear no genere una combinación
-			if (x >= 2 && y >= 2) {
-				condition = (items [x - 1, y].id == randomId && items [x - 2, y].id == randomId) ||
-				(items [x, y - 1].id == randomId && items [x, y - 2].id == randomId);
-			} else if (y >= 2) {
-				condition = (items [x, y - 1].id == randomId && items [x, y - 2].id == randomId);
-			} else if (x >= 2) {
-				condition = (items [x - 1, y].id == randomId && items [x - 2, y].id == randomId);
-			}*/
+		/*Buscar combinaciones horizontal y verticalmente*/
+		List<GridItem> hMatch = SearchHorizontally (item);
+		List<GridItem> vMatch = SearchVertically (item);
 
-		} while(condition);
+		/*Chequear si hay combinaciones y escoger la mas larga*/
+		if (hMatch.Count >= minItemsForMatch && hMatch.Count > vMatch.Count) {
+			/*Definir información para combinación horizontal*/
+			info.matchStartingX = GetMinimumX (hMatch);
+			info.matchEndingX = GetMaximumX (hMatch);
+			info.matchStartingY = info.matchEndingY = hMatch [0].y;
+			info.match = hMatch;
+		} else if (vMatch.Count >= minItemsForMatch) {
+			/*Definir informacion para combinación vertical*/
+			info.matchStartingY = GetMinimumY (vMatch);
+			info.matchEndingY = GetMaximumY (vMatch);
+			info.matchStartingX = info.matchEndingX = vMatch [0].x;
+			info.match = vMatch;
+		}
+		return info;
+	}
 
-		// Crear el GridItem
-		GameObject randomFruit = fruits [randomId];	
-		GridItem newFruit = ((GameObject)Instantiate (randomFruit, new Vector3 (x + fruitWidth, y), Quaternion.identity)).GetComponent<GridItem> ();
-		newFruit.OnItemPositionChanged (x, y);
-		return newFruit;
+	/*Buscarle combinaciones horizontales a un item*/
+	List<GridItem> SearchHorizontally (GridItem item)
+	{
+		List<GridItem> hItems = new List<GridItem>{ item };
+		int left = item.x - 1;
+		int right = item.x + 1;
+
+		/*Buscar por la izquierda*/
+		while (left >= 0 && items [left, item.y].id == item.id) {
+			hItems.Add (items [left, item.y]);
+			left--;
+		}
+
+		/*Buscar por la derecha*/
+		while (right < xSize && items [right, item.y].id == item.id) {
+			hItems.Add (items [right, item.y]);
+			right++;
+		}
+		return hItems;
+	}
+
+	/*Buscarle combinaciones verticales a un item*/
+	List<GridItem> SearchVertically (GridItem item)
+	{
+		List<GridItem> vItems = new List<GridItem>{ item };
+		int up = item.y + 1;
+		int down = item.y - 1;
+
+		/*Buscar por abajo*/
+		while (down >= 0 && items [item.x, down].id == item.id) {
+			vItems.Add (items [item.x, down]);
+			down--;
+		}
+
+		/*Buscar por arriba*/
+		while (up < ySize && items [item.x, up].id == item.id) {
+			vItems.Add (items [item.x, up]);
+			up++;
+		}
+		return vItems;
+	}
+
+	/*Retorna el indice menor en X de la lista*/
+	int GetMinimumX (List<GridItem> items)
+	{		
+		float[] indices = new float[items.Count];
+		for (int i = 0; i < indices.Length; i++) {
+			indices [i] = items [i].x;
+		}
+		return (int)Mathf.Min (indices);
+	}
+
+	/*Retorna el indice mayor en X de la lista*/
+	int GetMaximumX (List<GridItem> items)
+	{
+		float[] indices = new float[items.Count];
+		for (int i = 0; i < indices.Length; i++) {
+			indices [i] = items [i].x;
+		}
+		return (int)Mathf.Max (indices);
+	}
+
+	/*Retorna el indice menor de Y de la lista*/
+	int GetMinimumY (List<GridItem> items)
+	{
+		float[] indices = new float[items.Count];
+		for (int i = 0; i < indices.Length; i++) {
+			indices [i] = items [i].y;
+		}
+		return (int)Mathf.Min (indices);
+	}
+
+	/*Retorna el indice mayor de Y de la lista*/
+	int GetMaximumY (List<GridItem> items)
+	{
+		float[] indices = new float[items.Count];
+		for (int i = 0; i < indices.Length; i++) {
+			indices [i] = items [i].y;
+		}
+		return (int)Mathf.Max (indices);
 	}
 
 	/*Capturar evento click(item) sobre algun elemento de la cuadricula*/
 	void OnMouseOverItem (GridItem item)
 	{
-		/*Si el segundo item seleccionado es igual al primero*/
+		print (canPlay);
+		/*Si el segundo item seleccionado es igual al primero y si puede jugar*/
 		if (currentlySelectedItem == item || !canPlay) {
 			return;
 		}
@@ -114,6 +236,7 @@ public class GameGrid : MonoBehaviour
 			}
 			currentlySelectedItem = null; 
 		}
+		print (canPlay);
 	}
 
 	/*Intentar una jugada*/
@@ -136,14 +259,22 @@ public class GameGrid : MonoBehaviour
 		if (matchA.validMatch) {
 			yield return StartCoroutine (DestroyItems (matchA.match));
 			yield return new WaitForSeconds (delayBetweenMatches);
-			yield return StartCoroutine(UpdateGridAfterMatch(matchA));				
-		}
-		if (matchB.validMatch) {
+			yield return StartCoroutine(UpdateGridAfterMatch(matchA));	
+		}else if (matchB.validMatch) {
 			yield return StartCoroutine (DestroyItems (matchB.match));
 			yield return new WaitForSeconds (delayBetweenMatches);
 			yield return StartCoroutine(UpdateGridAfterMatch(matchB));
 		}	
 		canPlay = true;
+	}
+
+	/*Destruir los items de una combinación*/
+	IEnumerator DestroyItems (List<GridItem> items)
+	{
+		foreach (GridItem i in items) {
+			yield return StartCoroutine (i.transform.Scale (Vector3.zero, 0.05f)); //Reducir tamaño (efecto visual)
+			Destroy (i.gameObject); //Destruir
+		}
 	}
 
 	/*Generar nuevos items cada que se realiza una combinación*/
@@ -202,14 +333,7 @@ public class GameGrid : MonoBehaviour
 	}
 
 
-	/*Destruir los items de una combinación*/
-	IEnumerator DestroyItems (List<GridItem> items)
-	{
-		foreach (GridItem i in items) {
-			yield return StartCoroutine (i.transform.Scale (Vector3.zero, 0.05f)); //Reducir tamaño (efecto visual)
-			Destroy (i.gameObject); //Destruir
-		}
-	}
+
 
 	IEnumerator Swap (GridItem a, GridItem b)
 	{
@@ -242,127 +366,14 @@ public class GameGrid : MonoBehaviour
 		a.OnItemPositionChanged (bOldX, bOldY);
 	}
 
-	/*Buscarle combinaciones horizontales a un item*/
-	List<GridItem> SearchHorizontally (GridItem item)
-	{
-		List<GridItem> hItems = new List<GridItem>{ item };
-		int left = item.x - 1;
-		int right = item.x + 1;
-
-		/*Buscar por la izquierda*/
-		while (left >= 0 && items [left, item.y].id == item.id) {
-			hItems.Add (items [left, item.y]);
-			left--;
-		}
-
-		/*Buscar por la derecha*/
-		while (right < xSize && items [right, item.y].id == item.id) {
-			hItems.Add (items [right, item.y]);
-			right++;
-		}
-		return hItems;
-	}
-
-	/*Buscarle combinaciones verticales a un item*/
-	List<GridItem> SearchVertically (GridItem item)
-	{
-		List<GridItem> vItems = new List<GridItem>{ item };
-		int up = item.y + 1;
-		int down = item.y - 1;
-
-		/*Buscar por abajo*/
-		while (down >= 0 && items [item.x, down].id == item.id) {
-			vItems.Add (items [item.x, down]);
-			down--;
-		}
-
-		/*Buscar por arriba*/
-		while (up < ySize && items [item.x, up].id == item.id) {
-			vItems.Add (items [item.x, up]);
-			up++;
-		}
-		return vItems;
-	}
 
 
-	MatchInfo GetMatchInformation (GridItem item)
-	{
-		MatchInfo info = new MatchInfo ();
-		info.match = null;
 
-		/*Buscar combinaciones horizontal y verticalmente*/
-		List<GridItem> hMatch = SearchHorizontally (item);
-		List<GridItem> vMatch = SearchVertically (item);
 
-		/*Chequear si hay combinaciones y escoger la mas larga*/
-		if (hMatch.Count >= minItemsForMatch && hMatch.Count > vMatch.Count) {
-			/*Definir información para combinación horizontal*/
-			info.matchStartingX = GetMinimumX (hMatch);
-			info.matchEndingX = GetMaximumX (hMatch);
-			info.matchStartingY = info.matchEndingY = hMatch [0].y;
-			info.match = hMatch;
-		} else if (vMatch.Count >= minItemsForMatch) {
-			/*Definir informacion para combinación vertical*/
-			info.matchStartingY = GetMinimumY (vMatch);
-			info.matchEndingY = GetMaximumY (vMatch);
-			info.matchStartingX = info.matchEndingX = vMatch [0].x;
-			info.match = vMatch;
-		}
-		return info;
-	}
 
-	/*Retorna el indice menor en X de la lista*/
-	int GetMinimumX (List<GridItem> items)
-	{		
-		float[] indices = new float[items.Count];
-		for (int i = 0; i < indices.Length; i++) {
-			indices [i] = items [i].x;
-		}
-		return (int)Mathf.Min (indices);
-	}
 
-	/*Retorna el indice mayor en X de la lista*/
-	int GetMaximumX (List<GridItem> items)
-	{
-		float[] indices = new float[items.Count];
-		for (int i = 0; i < indices.Length; i++) {
-			indices [i] = items [i].x;
-		}
-		return (int)Mathf.Max (indices);
-	}
 
-	/*Retorna el indice menor de Y de la lista*/
-	int GetMinimumY (List<GridItem> items)
-	{
-		float[] indices = new float[items.Count];
-		for (int i = 0; i < indices.Length; i++) {
-			indices [i] = items [i].y;
-		}
-		return (int)Mathf.Min (indices);
-	}
 
-	/*Retorna el indice mayor de Y de la lista*/
-	int GetMaximumY (List<GridItem> items)
-	{
-		float[] indices = new float[items.Count];
-		for (int i = 0; i < indices.Length; i++) {
-			indices [i] = items [i].y;
-		}
-		return (int)Mathf.Max (indices);
-	}
-
-	void GetImageResources ()
-	{
-		/*Cargar las imagenes*/
-		//fruits = Resources.LoadAll<GameObject> ("Prefabs/Other");
-		//fruits = Resources.LoadAll<GameObject> ("Prefabs");
-		fruits = Resources.LoadAll<GameObject> ("Prefabs/Food");
-
-		/*Asignar un id a cada imagen*/
-		for (int i = 0; i < fruits.Length; i++) {
-			fruits [i].GetComponent<GridItem> ().id = i;
-		}
-	}
 
 
 	void ChangeRigidBodyStatus (bool status)
