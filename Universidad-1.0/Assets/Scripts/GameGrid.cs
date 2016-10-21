@@ -213,14 +213,9 @@ public class GameGrid : MonoBehaviour
 	/*Capturar evento click(item) sobre algun elemento de la cuadricula*/
 	void OnMouseOverItem (GridItem item)
 	{
-<<<<<<< HEAD
-		/*Si el segundo item seleccionado es igual al primero*/
-		if (currentlySelectedItem == item) {
-=======
 		print (canPlay);
 		/*Si el segundo item seleccionado es igual al primero y si puede jugar*/
 		if (currentlySelectedItem == item || !canPlay) {
->>>>>>> refs/remotes/origin/master
 			return;
 		}
 
