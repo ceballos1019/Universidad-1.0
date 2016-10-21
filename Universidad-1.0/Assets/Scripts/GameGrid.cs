@@ -215,7 +215,7 @@ public class GameGrid : MonoBehaviour
 	{
 		print (canPlay);
 		/*Si el segundo item seleccionado es igual al primero y si puede jugar*/
-		if (currentlySelectedItem == item || !canPlay) {
+		if (currentlySelectedItem == item) {
 			return;
 		}
 
