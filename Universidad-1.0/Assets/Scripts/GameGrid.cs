@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -14,6 +15,7 @@ public class GameGrid : MonoBehaviour
 	public static int minItemsForMatch = 3;
 	public float delayBetweenMatches = 0.2f;
 	public bool canPlay;
+	private Slider sliderTest;
 
 	// Use this for initialization
 	void Start ()
@@ -23,6 +25,11 @@ public class GameGrid : MonoBehaviour
 		FillGrid ();
 		ClearGrid ();
 		GridItem.OnMouseOverItemEventHandler += OnMouseOverItem;
+		GameObject temp = GameObject.Find ("Slider");
+		if (temp != null) {
+			sliderTest = temp.GetComponent<Slider> ();
+		}
+
 	}
 
 	void OnDisable ()
@@ -212,8 +219,7 @@ public class GameGrid : MonoBehaviour
 
 	/*Capturar evento click(item) sobre algun elemento de la cuadricula*/
 	void OnMouseOverItem (GridItem item)
-	{
-		print (canPlay);
+	{		
 		/*Si el segundo item seleccionado es igual al primero y si puede jugar*/
 		if (currentlySelectedItem == item) {
 			return;
@@ -236,7 +242,6 @@ public class GameGrid : MonoBehaviour
 			}
 			currentlySelectedItem = null; 
 		}
-		print (canPlay);
 	}
 
 	/*Intentar una jugada*/
@@ -260,12 +265,15 @@ public class GameGrid : MonoBehaviour
 			yield return StartCoroutine (DestroyItems (matchA.match));
 			yield return new WaitForSeconds (delayBetweenMatches);
 			yield return StartCoroutine(UpdateGridAfterMatch(matchA));	
-		}else if (matchB.validMatch) {
+		}
+		else if (matchB.validMatch) {
 			yield return StartCoroutine (DestroyItems (matchB.match));
 			yield return new WaitForSeconds (delayBetweenMatches);
 			yield return StartCoroutine(UpdateGridAfterMatch(matchB));
-		}	
+		}
 		//canPlay = true;
+		sliderTest.value+=0.1f;
+
 	}
 
 	/*Destruir los items de una combinación*/
@@ -280,6 +288,7 @@ public class GameGrid : MonoBehaviour
 	/*Generar nuevos items cada que se realiza una combinación*/
 	IEnumerator UpdateGridAfterMatch(MatchInfo match)
 	{
+		print ("Entre al UpdateGridAfterMatch");
 		if (match.matchStartingY == match.matchEndingY) {
 			//Combinación horizontal
 			for (int x = match.matchStartingX; x <= match.matchEndingX; x++) {
@@ -293,6 +302,18 @@ public class GameGrid : MonoBehaviour
 				}
 				items[x,ySize -1]=InstantiateFruit (x, ySize - 1); //Crear el nuevo item en la ultima fila
 			}
+
+			for (int x = match.matchStartingX; x <= match.matchEndingX; x++) {
+				for (int y = match.matchStartingY; y <= ySize - 1; y++) {
+					MatchInfo matchInfo = GetMatchInformation (items [x, y]);
+					if (matchInfo.validMatch) {
+						//yield return new WaitForSeconds (delayBetweenMatches);
+						yield return StartCoroutine(DestroyItems(matchInfo.match));
+						yield return new WaitForSeconds (delayBetweenMatches);
+						yield return StartCoroutine (UpdateGridAfterMatch (matchInfo));
+					}
+				}
+			}
 		}
 		else if(match.matchEndingX==match.matchStartingX){
 			//Combinación vertical
@@ -303,25 +324,20 @@ public class GameGrid : MonoBehaviour
 				GridItem current = items [match.matchStartingX, y];
 				items [match.matchStartingX, y - matchHeight] = current;
 				items [match.matchStartingX, y] = lowerIndex;
-				//items [match.matchStartingX, y - matchHeight].OnItemPositionChanged (items [match.matchStartingX, y - matchHeight].x, items [match.matchStartingX, y - matchHeight].y-matchHeight);
+				items [match.matchStartingX, y - matchHeight].OnItemPositionChanged (items [match.matchStartingX, y - matchHeight].x, items [match.matchStartingX, y - matchHeight].y-matchHeight);
 			}
-			/* ????????????????*/
+			/* ????????????????
 			for (int y = 0; y < ySize - matchHeight; y++) {
 				items [match.matchStartingX, y].OnItemPositionChanged (match.matchStartingX, y);
 			}
-
+			*/
 			/*Crear los items para rellenar la cuadricula*/
 			for (int i = 0; i < matchHeight; i++) {
 				items [match.matchStartingX, (ySize - 1) - i] = InstantiateFruit (match.matchStartingX, (ySize - 1) - i);
 			}
-		}
 
-		/*Cada que se rellene la cuadricula con nuevos items, se debe verificar si se formaron mas combinaciones
-		  ¿Se puede mejorar?*/
-		for (int x = 0; x < xSize; x++) {
-			for (int y = 0; y < ySize; y++) {
-				/*Buscar combinación en cada item*/
-				MatchInfo matchInfo = GetMatchInformation (items [x, y]);
+			for (int y = match.matchStartingY; y <= ySize - 1; y++) {
+				MatchInfo matchInfo = GetMatchInformation (items [match.matchStartingX, y]);
 				if (matchInfo.validMatch) {
 					//yield return new WaitForSeconds (delayBetweenMatches);
 					yield return StartCoroutine(DestroyItems(matchInfo.match));
@@ -330,6 +346,21 @@ public class GameGrid : MonoBehaviour
 				}
 			}
 		}
+		/*Cada que se rellene la cuadricula con nuevos items, se debe verificar si se formaron mas combinaciones
+		  ¿Se puede mejorar?
+		for (int x = 0; x < xSize; x++) {
+			for (int y = 0; y < ySize; y++) {
+				/*Buscar combinación en cada item
+				MatchInfo matchInfo = GetMatchInformation (items [match.matchStartingX, y]);
+				if (matchInfo.validMatch) {
+					//yield return new WaitForSeconds (delayBetweenMatches);
+					yield return StartCoroutine(DestroyItems(matchInfo.match));
+					yield return new WaitForSeconds (delayBetweenMatches);
+					yield return StartCoroutine (UpdateGridAfterMatch (matchInfo));
+				}
+			}
+		}*/
+		print ("Sali del UpdateGridAfterMatch");
 	}
 
 

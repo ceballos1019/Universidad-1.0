@@ -19,3 +19,24 @@ C:\Users\Invitado\Desktop\Universidad-1.0\Universidad-1.0\Temp\bin\Debug\UnityEn
 C:\Users\Invitado\Desktop\Universidad-1.0\Universidad-1.0\obj\Debug\Assembly-CSharp.csprojResolveAssemblyReference.cache
 C:\Users\Invitado\Desktop\Universidad-1.0\Universidad-1.0\obj\Debug\Assembly-CSharp.dll
 C:\Users\Invitado\Desktop\Universidad-1.0\Universidad-1.0\obj\Debug\Assembly-CSharp.pdb
+F:\ANDRES\UDEA\PROYECTO INTEGRADOR I\Universidad-1.0\Universidad-1.0\Temp\bin\Debug\Assembly-CSharp.dll
+F:\ANDRES\UDEA\PROYECTO INTEGRADOR I\Universidad-1.0\Universidad-1.0\Temp\bin\Debug\Assembly-CSharp.pdb
+F:\ANDRES\UDEA\PROYECTO INTEGRADOR I\Universidad-1.0\Universidad-1.0\Temp\bin\Debug\UnityEditor.dll
+F:\ANDRES\UDEA\PROYECTO INTEGRADOR I\Universidad-1.0\Universidad-1.0\Temp\bin\Debug\UnityEngine.dll
+F:\ANDRES\UDEA\PROYECTO INTEGRADOR I\Universidad-1.0\Universidad-1.0\Temp\bin\Debug\UnityEngine.Networking.dll
+F:\ANDRES\UDEA\PROYECTO INTEGRADOR I\Universidad-1.0\Universidad-1.0\Temp\bin\Debug\UnityEngine.UI.dll
+F:\ANDRES\UDEA\PROYECTO INTEGRADOR I\Universidad-1.0\Universidad-1.0\Temp\bin\Debug\Mono.Cecil.dll
+F:\ANDRES\UDEA\PROYECTO INTEGRADOR I\Universidad-1.0\Universidad-1.0\Temp\bin\Debug\Unity.SerializationLogic.dll
+F:\ANDRES\UDEA\PROYECTO INTEGRADOR I\Universidad-1.0\Universidad-1.0\Temp\bin\Debug\Unity.DataContract.dll
+F:\ANDRES\UDEA\PROYECTO INTEGRADOR I\Universidad-1.0\Universidad-1.0\Temp\bin\Debug\ICSharpCode.NRefactory.dll
+F:\ANDRES\UDEA\PROYECTO INTEGRADOR I\Universidad-1.0\Universidad-1.0\Temp\bin\Debug\Unity.UNetWeaver.dll
+F:\ANDRES\UDEA\PROYECTO INTEGRADOR I\Universidad-1.0\Universidad-1.0\Temp\bin\Debug\Unity.CecilTools.dll
+F:\ANDRES\UDEA\PROYECTO INTEGRADOR I\Universidad-1.0\Universidad-1.0\Temp\bin\Debug\Mono.Cecil.Pdb.dll
+F:\ANDRES\UDEA\PROYECTO INTEGRADOR I\Universidad-1.0\Universidad-1.0\Temp\bin\Debug\Mono.Cecil.Mdb.dll
+F:\ANDRES\UDEA\PROYECTO INTEGRADOR I\Universidad-1.0\Universidad-1.0\Temp\bin\Debug\UnityEngine.xml
+F:\ANDRES\UDEA\PROYECTO INTEGRADOR I\Universidad-1.0\Universidad-1.0\Temp\bin\Debug\UnityEditor.xml
+F:\ANDRES\UDEA\PROYECTO INTEGRADOR I\Universidad-1.0\Universidad-1.0\Temp\bin\Debug\UnityEngine.UI.xml
+F:\ANDRES\UDEA\PROYECTO INTEGRADOR I\Universidad-1.0\Universidad-1.0\Temp\bin\Debug\UnityEngine.Networking.xml
+F:\ANDRES\UDEA\PROYECTO INTEGRADOR I\Universidad-1.0\Universidad-1.0\obj\Debug\Assembly-CSharp.csprojResolveAssemblyReference.cache
+F:\ANDRES\UDEA\PROYECTO INTEGRADOR I\Universidad-1.0\Universidad-1.0\obj\Debug\Assembly-CSharp.dll
+F:\ANDRES\UDEA\PROYECTO INTEGRADOR I\Universidad-1.0\Universidad-1.0\obj\Debug\Assembly-CSharp.pdb
