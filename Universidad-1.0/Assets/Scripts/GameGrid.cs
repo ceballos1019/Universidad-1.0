@@ -14,8 +14,8 @@ public class GameGrid : MonoBehaviour
 	private GridItem currentlySelectedItem;
 	public static int minItemsForMatch = 3;
 	public float delayBetweenMatches = 0.2f;
-	public bool canPlay;
-	private Slider sliderTest;
+	public bool canPlay = true;
+	public ControlSlider sliderTest;
 
 	// Use this for initialization
 	void Start ()
@@ -25,11 +25,6 @@ public class GameGrid : MonoBehaviour
 		FillGrid ();
 		ClearGrid ();
 		GridItem.OnMouseOverItemEventHandler += OnMouseOverItem;
-		GameObject temp = GameObject.Find ("Slider");
-		if (temp != null) {
-			sliderTest = temp.GetComponent<Slider> ();
-		}
-
 	}
 
 	void OnDisable ()
@@ -220,6 +215,8 @@ public class GameGrid : MonoBehaviour
 	/*Capturar evento click(item) sobre algun elemento de la cuadricula*/
 	void OnMouseOverItem (GridItem item)
 	{		
+		if (!canPlay)
+			return;
 		/*Si el segundo item seleccionado es igual al primero y si puede jugar*/
 		if (currentlySelectedItem == item) {
 			return;
@@ -247,7 +244,7 @@ public class GameGrid : MonoBehaviour
 	/*Intentar una jugada*/
 	IEnumerator TryMatch (GridItem a, GridItem b)
 	{
-		//canPlay = false;
+		canPlay = false;
 		yield return StartCoroutine (Swap (a, b));  //Hacer el swap
 
 		/*Buscar combinaciones con ambos items*/
@@ -257,6 +254,7 @@ public class GameGrid : MonoBehaviour
 		/*El swap no genera ninguna combinación*/
 		if (!matchA.validMatch && !matchB.validMatch) {
 			yield return StartCoroutine (Swap (a, b));
+			canPlay = true;
 			yield break;
 		}
 
@@ -266,13 +264,13 @@ public class GameGrid : MonoBehaviour
 			yield return new WaitForSeconds (delayBetweenMatches);
 			yield return StartCoroutine(UpdateGridAfterMatch(matchA));	
 		}
-		else if (matchB.validMatch) {
+		if (matchB.validMatch) {
 			yield return StartCoroutine (DestroyItems (matchB.match));
 			yield return new WaitForSeconds (delayBetweenMatches);
 			yield return StartCoroutine(UpdateGridAfterMatch(matchB));
 		}
-		//canPlay = true;
-		sliderTest.value+=0.1f;
+		canPlay = true;
+		sliderTest.SumarValor(0.1f);
 
 	}
 
