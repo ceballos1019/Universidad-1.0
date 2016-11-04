@@ -3,7 +3,7 @@ using System.Collections;
 
 public class GridItem : MonoBehaviour {
 
-	public int x {
+    public int x {
 		get;
 		private set;
 	}
@@ -23,14 +23,29 @@ public class GridItem : MonoBehaviour {
 		gameObject.name = string.Format("Sprite [{0}] [{1}]",x,y);
 	}
 
+    //Cuando se presiona la pantalla y se suelta
 	void OnMouseDown()
 	{
-			if (OnMouseOverItemEventHandler != null) 
+        if (OnMouseOverItemEventHandler != null) 
 		{
 			OnMouseOverItemEventHandler (this);
-		}
+        }
 	}
 
-	public delegate void OnMouseOverItem(GridItem item);
+    //Cuando se arrastra el mouse dando clic
+    void OnMouseDrag()
+    {
+        
+        if (OnMouseDragOverItemEventHandler != null)
+        {
+            OnMouseDragOverItemEventHandler(this);
+        }
+    }
+
+
+    public delegate void OnMouseOverItem(GridItem item);
 	public static event OnMouseOverItem OnMouseOverItemEventHandler;
+
+    public delegate void OnMouseDragOverItem(GridItem item);
+    public static event OnMouseDragOverItem OnMouseDragOverItemEventHandler;
 }

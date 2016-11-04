@@ -19,21 +19,39 @@ public class GameGrid : MonoBehaviour
 	public bool canPlay = true;
 	public ControlSlider[] sliders;
 	private int lastCreated;
+    private Vector3 screenPoint;
+    private Vector3 offset;
+    private Vector3 iniPosition;
+    private float yPos;
 
-	// Use this for initialization
-	void Start ()
+    // Use this for initialization
+    void Start ()
 	{
 		canPlay = true;
 		GetImageResources ();	
 		FillGrid ();
 		ClearGrid ();
 		GridItem.OnMouseOverItemEventHandler += OnMouseOverItem;
+        GridItem.OnMouseDragOverItemEventHandler += OnMouseDragOverItem;
 	}
+
+    //Prueba
+   /* void Update()
+    {
+        foreach (Touch touch in Input.touches)
+        {
+            Debug.Log("Dedo " + touch.fingerId);
+            Debug.Log("Posicion +" + touch.position);
+            Debug.Log("\nPosición respecto al ultimo frame" + touch.deltaPosition);
+            Debug.Log("\nfase en la que se encuentra el dedo " + touch.phase);
+        }
+    }*/
 
 	void OnDisable ()
 	{
 		GridItem.OnMouseOverItemEventHandler -= OnMouseOverItem;
-	}
+        GridItem.OnMouseDragOverItemEventHandler += OnMouseDragOverItem;
+    }
 
 	/*Cargar las imagenes*/
 	void GetImageResources ()
@@ -218,8 +236,16 @@ public class GameGrid : MonoBehaviour
 
 	/*Capturar evento click(item) sobre algun elemento de la cuadricula*/
 	void OnMouseOverItem (GridItem item)
-	{		
-		if (!canPlay)
+	{
+        /*Instrucciones para el movimiento cuando se mantiene presionando la pantalla */
+        Vector3 scanPos = item.transform.position;
+        iniPosition = scanPos;
+        screenPoint = Camera.main.WorldToScreenPoint(scanPos);
+        offset = scanPos - Camera.main.ScreenToWorldPoint(
+        new Vector3(Input.mousePosition.x, Input.mousePosition.y, screenPoint.z));
+        /**/
+
+        if (!canPlay)
 			return;
 		/*Si el segundo item seleccionado es igual al primero y si puede jugar*/
 		if (currentlySelectedItem == item) {
@@ -245,11 +271,62 @@ public class GameGrid : MonoBehaviour
 		}
 	}
 
-	/*Intentar una jugada*/
-	IEnumerator TryMatch (GridItem a, GridItem b)
+    /*Capturar evento click(item) sobre algun elemento de la cuadricula*/
+    void OnMouseDragOverItem(GridItem item)
+    {
+        Vector3 curScreenPoint = new Vector3(Input.mousePosition.x, Input.mousePosition.y, screenPoint.z);
+        Vector3 curPosition = Camera.main.ScreenToWorldPoint(curScreenPoint) + offset;
+
+        //Diferencias entre la posicion cuando se presiona la pantalla y se suelta
+        float xD = Mathf.Abs(curPosition.x - iniPosition.x); 
+        float yD = Mathf.Abs(curPosition.y - iniPosition.y); 
+        
+        if ((xD + yD) >= 1)
+             item.transform.position = iniPosition;
+        else
+        item.transform.position = curPosition;
+     
+        if (!canPlay)
+            return;
+        /*Si el segundo item seleccionado es igual al primero y si puede jugar*/
+        if (currentlySelectedItem == item)
+        {
+            return;
+        }
+
+        /*Si es el primer item a seleccionar*/
+        if (currentlySelectedItem == null)
+        {
+            currentlySelectedItem = item;
+        }
+        else
+        {
+            /*Si es el segundo item a seleccionar*/
+            float xDiff = Mathf.Abs(item.x - currentlySelectedItem.x);  //Diferencia entre los dos items en el eje X
+            float yDiff = Mathf.Abs(item.y - currentlySelectedItem.y); //Diferencia entre los dos items en el eje Y
+
+            /*Permitir swap si es valido*/
+            if (xDiff + yDiff == 1)
+            {
+                StartCoroutine(TryMatch(currentlySelectedItem, item));
+            }
+            else
+            {
+                /*Negar swap*/
+                Debug.LogError("Esos items a mas de 1 unidad de distancia uno del otro");
+            }
+            currentlySelectedItem = null;
+        }
+        print("xn: " + item.x + "yn: " + item.y);
+    }
+
+    /*Intentar una jugada*/
+    IEnumerator TryMatch (GridItem a, GridItem b)
 	{
 		canPlay = false;
-		yield return StartCoroutine (Swap (a, b));  //Hacer el swap
+        bool sliderA = false;
+        bool sliderB = false;
+        yield return StartCoroutine (Swap (a, b));  //Hacer el swap
 
 		/*Buscar combinaciones con ambos items*/
 		MatchInfo matchA = GetMatchInformation (a); 
@@ -264,7 +341,8 @@ public class GameGrid : MonoBehaviour
 
 		/*El swap genera una combinación con alguno de los dos items*/
 		if (matchA.validMatch) {
-			yield return StartCoroutine (DestroyItems (matchA.match));
+            sliderA = true;
+            yield return StartCoroutine (DestroyItems (matchA.match));
 			yield return new WaitForSeconds (delayBetweenMatches);
 			yield return StartCoroutine(UpdateGrid());
 			if (b != null) {
@@ -276,7 +354,8 @@ public class GameGrid : MonoBehaviour
 				}
 			}
 		} else if (matchB.validMatch) {
-			yield return StartCoroutine (DestroyItems (matchB.match));
+            sliderB = true;
+            yield return StartCoroutine (DestroyItems (matchB.match));
 			yield return new WaitForSeconds (delayBetweenMatches);
 			yield return StartCoroutine(UpdateGrid());
 			if (a != null) {
@@ -289,8 +368,15 @@ public class GameGrid : MonoBehaviour
 			}
 		}
 		canPlay = true;
-		int aleatorio = Random.Range (0, 5);
-		sliders [aleatorio].SumarValor (0.1f);
+        if (sliderA == true)
+            sliders[a.id].SumarValor(0.1f);
+        else if (sliderB == true)
+            sliders[b.id].SumarValor(0.1f);
+        else
+        {
+            sliders[a.id].SumarValor(0.1f);
+            sliders[b.id].SumarValor(0.1f);
+        }
 
 	}
 
