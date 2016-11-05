@@ -42,10 +42,22 @@ public class GridItem : MonoBehaviour {
         }
     }
 
+    //Cuando se deja de tocar la pantalla
+    void OnMouseUp()
+    {
+        if (OnMouseUpOverItemEventHandler != null)
+        {
+            OnMouseUpOverItemEventHandler(this);
+        }
+    }
+
 
     public delegate void OnMouseOverItem(GridItem item);
 	public static event OnMouseOverItem OnMouseOverItemEventHandler;
 
     public delegate void OnMouseDragOverItem(GridItem item);
     public static event OnMouseDragOverItem OnMouseDragOverItemEventHandler;
+
+    public delegate void OnMouseUpOverItem(GridItem item);
+    public static event OnMouseUpOverItem OnMouseUpOverItemEventHandler;
 }
