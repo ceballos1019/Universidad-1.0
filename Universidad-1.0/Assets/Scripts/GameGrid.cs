@@ -279,7 +279,7 @@ public class GameGrid : MonoBehaviour
         yD =curPosition.y - iniPosition.y;
 
         //Simular movimiento de la fruta 
-        if (Mathf.Abs(xD) < 0.8 && yD == 0)
+        if (Mathf.Abs(xD) < 0.8 && yD == 0 && Mathf.Abs(xD) > 0.1)
         {
             item.transform.position = curPosition;
         }
@@ -333,7 +333,7 @@ public class GameGrid : MonoBehaviour
             currentlySelectedItem = null;
         }
         //Simulación movimiento 
-        else if (Mathf.Abs(xD + yD) > 0.01 && Mathf.Abs(xD + yD) < 0.99)
+        else if (Mathf.Abs(xD + yD) > 0.1 && Mathf.Abs(xD + yD) < 0.99)
         {
             item.transform.position = iniPosition;
             currentlySelectedItem = null;
