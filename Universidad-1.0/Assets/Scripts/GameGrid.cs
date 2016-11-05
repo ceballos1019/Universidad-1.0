@@ -36,6 +36,7 @@ public class GameGrid : MonoBehaviour
 		GridItem.OnMouseOverItemEventHandler += OnMouseOverItem;
         GridItem.OnMouseDragOverItemEventHandler += OnMouseDragOverItem;
         GridItem.OnMouseUpOverItemEventHandler += OnMouseUpOverItem;
+		DetectPossibleSwaps ();
     }
 
 	void OnDisable ()
@@ -80,7 +81,7 @@ public class GameGrid : MonoBehaviour
 
 			//Seleccionar un tipo aleatorio de alimento
 			randomId = Random.Range (0, fruits.Length);
-			//condition = randomId == lastCreated;
+			condition = randomId == lastCreated;
 			/*
 			// Validar que el proximo objeto a crear no genere una combinación
 			if (x >= 2 && y >= 2) {
@@ -257,9 +258,6 @@ public class GameGrid : MonoBehaviour
 			/*Permitir swap si es valido*/
 			if (xDiff + yDiff == 1) {				
 				StartCoroutine (TryMatch (currentlySelectedItem, item));
-			} else {
-				/*Negar swap*/
-				Debug.LogError ("Esos items a mas de 1 unidad de distancia uno del otro");
 			}
 			currentlySelectedItem = null; 
 		}
@@ -384,6 +382,7 @@ public class GameGrid : MonoBehaviour
 			}
 		}
 		canPlay = true;
+		print (DetectPossibleSwaps());
 
 	}
 
@@ -438,6 +437,7 @@ public class GameGrid : MonoBehaviour
             }
         }
         canPlay = true;
+		//print (DetectPossibleSwaps ());
 
     }
 
@@ -447,7 +447,7 @@ public class GameGrid : MonoBehaviour
 		foreach (GridItem i in items) {
 			int xtest = i.x;
 			int ytest = i.y;
-			yield return StartCoroutine (i.transform.Scale (Vector3.zero, 0.05f)); //Reducir tamaño (efecto visual)
+			yield return StartCoroutine (i.transform.Scale (Vector3.zero, 0.1f)); //Reducir tamaño (efecto visual)
 			Destroy (i.gameObject); //Destruir
 			this.items [xtest, ytest] = null;
 		}
@@ -519,7 +519,7 @@ public class GameGrid : MonoBehaviour
         ChangeRigidBodyStatus(false); //Desactivar todos los cuerpos rigidos
 
         /*Swap entre los dos items*/
-         float movDuration = 0.1f; //Duración del efecto de movimiento
+         float movDuration = 0.25f; //Duración del efecto de movimiento
          Vector3 aPosition = a.transform.position;
          //Vector3 bPosition = b.transform.position;
          StartCoroutine (a.transform.Move (b.transform.position, movDuration));
@@ -552,19 +552,20 @@ public class GameGrid : MonoBehaviour
 		}
 	}
 
-	void printItems ()
+	void PrintItems ()
 	{
 		for (int x = 0; x < xSize; x++) {
 			for (int y = 0; y < ySize; y++) {	
 				
-				if (items [x, y] == null) {
-					Debug.Log (string.Format ("{0} {1}", x, y));
+				if (items [x, y] != null) {
+					//Debug.Log (string.Format ("{0} {1}", x, y));
+					print(items[x,y].id);
 				}
 			}
 		}
 	}
 
-	public void checkIndices ()
+	public void CheckIndices ()
 	{
 		for (int x = 0; x < xSize; x++) {
 			for (int y = 0; y < ySize; y++) {	
@@ -575,6 +576,70 @@ public class GameGrid : MonoBehaviour
 				}
 
 			}
+		}
+	}
+
+	bool DetectPossibleSwaps(){
+		//X --> Columna en la vista, fila en la matriz
+		//Y --> Fila en la vista, columna en la matriz
+		for (int x = 0; x < xSize; x++) {
+			for (int y = 0; y < ySize; y++) {
+				GridItem currentItem = items [x, y];
+
+				/*Si existe un item arriba*/
+				if (y < ySize - 1) {
+					GridItem nearItem = items [x, y + 1];
+					/*Cambiar los indices para evaluar si se forma una combinación*/
+					SwapIndices (currentItem, nearItem);
+					/*Buscar combinaciones con ambos items*/
+					MatchInfo matchCurrent = GetMatchInformation (currentItem); 
+					MatchInfo matchNear = GetMatchInformation (nearItem); 
+					SwapIndices (currentItem, nearItem);
+					if (matchCurrent.validMatch || matchNear.validMatch) {	
+						print (x + "-" + y);
+						return true;	
+					}
+
+				}
+
+				/*Si existe un item a la derecha*/
+				if (x < xSize - 1) {
+					GridItem nearItem = items [x + 1, y];
+
+					/*Cambiar los indices para evaluar si se forma una combinación*/
+					SwapIndices (currentItem, nearItem);
+
+					/*Buscar combinaciones con ambos items*/
+					MatchInfo matchCurrent = GetMatchInformation (currentItem); 
+					MatchInfo matchNear = GetMatchInformation (nearItem); 
+					SwapIndices (currentItem, nearItem);
+					if (matchCurrent.validMatch || matchNear.validMatch) {	
+						print (x + "-" + y);
+						return true;	
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	void printName(int id){
+		switch (id) {
+		case 0:
+			print ("Uvas");
+			break;
+		case 1:
+			print ("Pera");
+			break;
+		case 2:
+			print ("Naranja");
+			break;
+		case 3:
+			print ("Tomate");
+			break;
+		case 4:
+			print ("Cerezas");
+			break;
 		}
 	}
 }
