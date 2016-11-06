@@ -33,4 +33,23 @@ public static class TransformExtension{
 		}
 		t.localScale = target; 
 	}
+
+	public static IEnumerator Spin(this Transform t, float speed, float duration)
+	{
+		float lastSpeed = speed/2;
+		float counter = 0;
+		while (counter < duration) {
+			if (counter > (duration / 2)) {
+				t.localRotation *= Quaternion.Euler (0, 0, lastSpeed);	
+			} else {
+				t.localRotation *= Quaternion.Euler(0, 0, speed);
+			}
+			counter += Time.deltaTime;
+			yield return null;
+		}
+		t.localRotation = Quaternion.Euler(0,0,0);
+		//yield return null;
+	}
+
+
 }

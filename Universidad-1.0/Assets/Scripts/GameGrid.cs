@@ -19,38 +19,37 @@ public class GameGrid : MonoBehaviour
 	public bool canPlay = true;
 	public ControlSlider[] sliders;
 	private int lastCreated;
-    private Vector3 screenPoint;
-    private Vector3 offset;
-    private Vector3 iniPosition;
-    private float yPos;
-    private float xD;
-    private float yD;
+	private Vector3 screenPoint;
+	private Vector3 offset;
+	private Vector3 iniPosition;
+	private float yPos;
+	private float xD;
+	private float yD;
 
-    // Use this for initialization
-    void Start ()
+	// Use this for initialization
+	void Start ()
 	{
 		canPlay = true;
 		GetImageResources ();	
 		FillGrid ();
 		ClearGrid ();
 		GridItem.OnMouseOverItemEventHandler += OnMouseOverItem;
-        GridItem.OnMouseDragOverItemEventHandler += OnMouseDragOverItem;
-        GridItem.OnMouseUpOverItemEventHandler += OnMouseUpOverItem;
-		DetectPossibleSwaps ();
-    }
+		GridItem.OnMouseDragOverItemEventHandler += OnMouseDragOverItem;
+		GridItem.OnMouseUpOverItemEventHandler += OnMouseUpOverItem;
+		//DetectPossibleSwaps ();
+	}
 
 	void OnDisable ()
 	{
 		GridItem.OnMouseOverItemEventHandler -= OnMouseOverItem;
-        GridItem.OnMouseDragOverItemEventHandler += OnMouseDragOverItem;
-        GridItem.OnMouseUpOverItemEventHandler += OnMouseUpOverItem;
-    }
+		GridItem.OnMouseDragOverItemEventHandler += OnMouseDragOverItem;
+		GridItem.OnMouseUpOverItemEventHandler += OnMouseUpOverItem;
+	}
 
 	/*Cargar las imagenes*/
 	void GetImageResources ()
 	{
-		//fruits = Resources.LoadAll<GameObject> ("Prefabs/Other");
-		//fruits = Resources.LoadAll<GameObject> ("Prefabs");
+		/*Cargar las imagenes*/
 		fruits = Resources.LoadAll<GameObject> ("Prefabs/Food");
 
 		/*Asignar un id a cada imagen*/
@@ -62,8 +61,10 @@ public class GameGrid : MonoBehaviour
 	/*Llenar la cuddricula inicial sin generar combinaciones*/
 	void FillGrid ()
 	{	
+		/*Creación de la matriz que representará internamente la cuadricula de juego*/
 		items = new GridItem[xSize, ySize];
 
+		/*Crear los items iniciales*/
 		for (int x = 0; x < xSize; x++) {
 			for (int y = 0; y < ySize; y++) {
 				// Instanciar el item en la posicion (x,y)
@@ -230,20 +231,18 @@ public class GameGrid : MonoBehaviour
 	/*Capturar evento click(item) sobre algun elemento de la cuadricula*/
 	void OnMouseOverItem (GridItem item)
 	{
-        /*Instrucciones para el movimiento cuando se mantiene presionando la pantalla */
-        Vector3 scanPos = item.transform.position;
-        iniPosition = scanPos;
-        screenPoint = Camera.main.WorldToScreenPoint(scanPos);
-        offset = scanPos - Camera.main.ScreenToWorldPoint(
-        new Vector3(Input.mousePosition.x, Input.mousePosition.y, screenPoint.z));
-        xD = 0;
-        yD = 0;
-        /**/
+		/*Instrucciones para el movimiento cuando se mantiene presionando la pantalla */
+		Vector3 scanPos = item.transform.position;
+		iniPosition = scanPos;
+		screenPoint = Camera.main.WorldToScreenPoint (scanPos);
+		offset = scanPos - Camera.main.ScreenToWorldPoint (
+			new Vector3 (Input.mousePosition.x, Input.mousePosition.y, screenPoint.z));
+		xD = 0;
+		yD = 0;
+		/**/
 
-        if (!canPlay)
-			return;
-		/*Si el segundo item seleccionado es igual al primero y si puede jugar*/
-		if (currentlySelectedItem == item) {
+		/*Si el segundo item seleccionado es igual al primero o si no puede jugar*/
+		if (currentlySelectedItem == item || !canPlay) {
 			return;
 		}
 
@@ -263,86 +262,78 @@ public class GameGrid : MonoBehaviour
 		}
 	}
 
-    /*Capturar evento click(item) sobre algun elemento de la cuadricula*/
-    void OnMouseDragOverItem(GridItem item)
-    {
-        if (!canPlay)
-            return;
-
-        Vector3 curScreenPoint = new Vector3(Input.mousePosition.x, Input.mousePosition.y, screenPoint.z);
-        Vector3 curPosition = Camera.main.ScreenToWorldPoint(curScreenPoint) + offset;
-
-        //Diferencias entre la posicion cuando se presiona la pantalla y se suelta
-        xD =curPosition.x - iniPosition.x;
-        yD =curPosition.y - iniPosition.y;
-
-        //Simular movimiento de la fruta 
-        if (Mathf.Abs(xD) < 0.8 && yD == 0 && Mathf.Abs(xD) > 0.1)
-        {
-            item.transform.position = curPosition;
-        }
-
-    }
-
-    //Evento cuando se deja de presionar la pantalla
-   void OnMouseUpOverItem(GridItem item)
-    {
-        //Validar movimiento 
-        if ((xD + yD) >= 1 )
-        {
-            //Movimiento hacia la derecha
-            if (xD > yD && item.x != 4)
-            {
-                item.transform.position = new Vector3(iniPosition.x + 1, iniPosition.y, 0);
-                items[item.x + 1, item.y].transform.position = iniPosition;
-                SwapIndices(item, items[item.x + 1, item.y]);
-                StartCoroutine(TryMatchWithDrag(items[item.x - 1, item.y], item));
-            }
-            //Movimiento hacia arriba
-            else if(item.y != 5)
-            {
-                item.transform.position = new Vector3(iniPosition.x, iniPosition.y + 1, 0);
-                items[item.x, item.y + 1].transform.position = iniPosition;
-                SwapIndices(item, items[item.x, item.y + 1]);
-                StartCoroutine(TryMatchWithDrag(items[item.x, item.y - 1], item));
-            }
-
-            currentlySelectedItem = null;
-        }
-        //Validar movimiento
-        else if ((xD + yD) <= -1 )
-        {
-            //Movimiento hacia la izquierda
-            if (xD < yD && item.x != 0)
-            {
-                item.transform.position = new Vector3(iniPosition.x - 1, iniPosition.y, 0);
-                items[item.x - 1, item.y].transform.position = iniPosition;
-                SwapIndices(item, items[item.x - 1, item.y]);
-                StartCoroutine(TryMatchWithDrag(items[item.x + 1, item.y], item));
-            }
-            //Movimiento hacia la derecha
-            else if(item.y != 0)
-            {
-                item.transform.position = new Vector3(iniPosition.x, iniPosition.y - 1, 0);
-                items[item.x, item.y - 1].transform.position = iniPosition;
-                SwapIndices(item, items[item.x, item.y - 1]);
-                StartCoroutine(TryMatchWithDrag(items[item.x, item.y + 1], item));
-            }
-            currentlySelectedItem = null;
-        }
-        //Simulación movimiento 
-        else if (Mathf.Abs(xD + yD) > 0.1 && Mathf.Abs(xD + yD) < 0.99)
-        {
-            item.transform.position = iniPosition;
-            currentlySelectedItem = null;
-        }
-    }
-
-    /*Intentar una jugada*/
-    IEnumerator TryMatch (GridItem a, GridItem b)
+	/*Capturar evento click(item) sobre algun elemento de la cuadricula*/
+	void OnMouseDragOverItem (GridItem item)
 	{
-		canPlay = false;
-        yield return StartCoroutine (Swap (a, b));  //Hacer el swap
+		if (!canPlay)
+			return;
+
+		Vector3 curScreenPoint = new Vector3 (Input.mousePosition.x, Input.mousePosition.y, screenPoint.z);
+		Vector3 curPosition = Camera.main.ScreenToWorldPoint (curScreenPoint) + offset;
+
+		//Diferencias entre la posicion cuando se presiona la pantalla y se suelta
+		xD = curPosition.x - iniPosition.x;
+		yD = curPosition.y - iniPosition.y;
+
+		//Simular movimiento de la fruta 
+		if (Mathf.Abs (xD) < 0.8 && yD == 0 && Mathf.Abs (xD) > 0.1) {
+			item.transform.position = curPosition;
+		}
+
+	}
+
+	//Evento cuando se deja de presionar la pantalla
+	void OnMouseUpOverItem (GridItem item)
+	{
+		//Validar movimiento 
+		if ((xD + yD) >= 1) {
+			//Movimiento hacia la derecha
+			if (xD > yD && item.x != 4) {
+				item.transform.position = new Vector3 (iniPosition.x + 1, iniPosition.y, 0);
+				items [item.x + 1, item.y].transform.position = iniPosition;
+				SwapIndices (item, items [item.x + 1, item.y]);
+				StartCoroutine (TryMatchWithDrag (items [item.x - 1, item.y], item));
+			}
+            //Movimiento hacia arriba
+            else if (item.y != 5) {
+				item.transform.position = new Vector3 (iniPosition.x, iniPosition.y + 1, 0);
+				items [item.x, item.y + 1].transform.position = iniPosition;
+				SwapIndices (item, items [item.x, item.y + 1]);
+				StartCoroutine (TryMatchWithDrag (items [item.x, item.y - 1], item));
+			}
+
+			currentlySelectedItem = null;
+		}
+        //Validar movimiento
+        else if ((xD + yD) <= -1) {
+			//Movimiento hacia la izquierda
+			if (xD < yD && item.x != 0) {
+				item.transform.position = new Vector3 (iniPosition.x - 1, iniPosition.y, 0);
+				items [item.x - 1, item.y].transform.position = iniPosition;
+				SwapIndices (item, items [item.x - 1, item.y]);
+				StartCoroutine (TryMatchWithDrag (items [item.x + 1, item.y], item));
+			}
+            //Movimiento hacia la derecha
+            else if (item.y != 0) {
+				item.transform.position = new Vector3 (iniPosition.x, iniPosition.y - 1, 0);
+				items [item.x, item.y - 1].transform.position = iniPosition;
+				SwapIndices (item, items [item.x, item.y - 1]);
+				StartCoroutine (TryMatchWithDrag (items [item.x, item.y + 1], item));
+			}
+			currentlySelectedItem = null;
+		}
+        //Simulación movimiento 
+        else if (Mathf.Abs (xD + yD) > 0.1 && Mathf.Abs (xD + yD) < 0.99) {
+			item.transform.position = iniPosition;
+			currentlySelectedItem = null;
+		}
+	}
+
+	/*Intentar una jugada*/
+	IEnumerator TryMatch (GridItem a, GridItem b)
+	{
+		canPlay = false; //Deshabilitar jugadas nuevas mientras termina la actual
+		yield return StartCoroutine (Swap (a, b));  //Hacer el swap
 
 		/*Buscar combinaciones con ambos items*/
 		MatchInfo matchA = GetMatchInformation (a); 
@@ -357,92 +348,89 @@ public class GameGrid : MonoBehaviour
 
 		/*El swap genera una combinación con alguno de los dos items*/
 		if (matchA.validMatch) {
-            yield return StartCoroutine (DestroyItems (matchA.match));
+			yield return StartCoroutine (DestroyItems (matchA.match));
 			yield return new WaitForSeconds (delayBetweenMatches);
-			yield return StartCoroutine(UpdateGrid());
+			yield return StartCoroutine (UpdateGrid ());
 			if (b != null) {
 				matchB = GetMatchInformation (b);
 				if (matchB.validMatch) {
 					yield return StartCoroutine (DestroyItems (matchB.match));
 					yield return new WaitForSeconds (delayBetweenMatches);
-					yield return StartCoroutine(UpdateGrid());
+					yield return StartCoroutine (UpdateGrid ());
 				}
 			}
 		} else if (matchB.validMatch) {
-            yield return StartCoroutine (DestroyItems (matchB.match));
+			yield return StartCoroutine (DestroyItems (matchB.match));
 			yield return new WaitForSeconds (delayBetweenMatches);
-			yield return StartCoroutine(UpdateGrid());
+			yield return StartCoroutine (UpdateGrid ());
 			if (a != null) {
 				matchB = GetMatchInformation (a);
 				if (matchA.validMatch) {
 					yield return StartCoroutine (DestroyItems (matchA.match));
 					yield return new WaitForSeconds (delayBetweenMatches);
-					yield return StartCoroutine(UpdateGrid());
+					yield return StartCoroutine (UpdateGrid ());
+				}
+			}
+		}
+		canPlay = true; //Habilitar las jugadas de nuevo
+
+		/*Validar si existen posibles jugadas y revolver los items en caso de que no existan*/
+		if (!DetectPossibleSwaps ()) {
+			ShuffleGrid ();
+		}
+	}
+
+	/*Intentar una jugada arrastrando los objetos*/
+	IEnumerator TryMatchWithDrag (GridItem a, GridItem b)
+	{
+		canPlay = false; //Deshabilitar jugadas nuevas mientras termina la actual
+
+		/*Buscar combinaciones con ambos items*/
+		MatchInfo matchA = GetMatchInformation (a);
+		MatchInfo matchB = GetMatchInformation (b);
+
+		/*El swap no genera ninguna combinación*/
+		if (!matchA.validMatch && !matchB.validMatch) {
+			yield return StartCoroutine (Swap (a, b));
+			canPlay = true;
+			yield break;
+		}
+
+		/*El swap genera una combinación con alguno de los dos items*/
+		if (matchA.validMatch) {
+			yield return StartCoroutine (DestroyItems (matchA.match));
+			yield return new WaitForSeconds (delayBetweenMatches);
+			yield return StartCoroutine (UpdateGrid ());
+			if (b != null) {
+				matchB = GetMatchInformation (b);
+				if (matchB.validMatch) {
+					yield return StartCoroutine (DestroyItems (matchB.match));
+					yield return new WaitForSeconds (delayBetweenMatches);
+					yield return StartCoroutine (UpdateGrid ());
+				}
+			}
+		} else if (matchB.validMatch) {
+			yield return StartCoroutine (DestroyItems (matchB.match));
+			yield return new WaitForSeconds (delayBetweenMatches);
+			yield return StartCoroutine (UpdateGrid ());
+			if (a != null) {
+				matchB = GetMatchInformation (a);
+				if (matchA.validMatch) {
+					yield return StartCoroutine (DestroyItems (matchA.match));
+					yield return new WaitForSeconds (delayBetweenMatches);
+					yield return StartCoroutine (UpdateGrid ());
 				}
 			}
 		}
 		canPlay = true;
-		print (DetectPossibleSwaps());
-
+		/*Validar si existen posibles jugadas y revolver los items en caso de que no existan*/
+		if (!DetectPossibleSwaps ()) {
+			ShuffleGrid ();
+		}
 	}
 
-    /*Intentar una jugada arrastrando los objetos*/
-    IEnumerator TryMatchWithDrag(GridItem a, GridItem b)
-    {
-        canPlay = false;
-
-        /*Buscar combinaciones con ambos items*/
-        MatchInfo matchA = GetMatchInformation(a);
-        MatchInfo matchB = GetMatchInformation(b);
-
-        /*El swap no genera ninguna combinación*/
-        if (!matchA.validMatch && !matchB.validMatch)
-        {
-            yield return StartCoroutine(Swap(a, b));
-            canPlay = true;
-            yield break;
-        }
-
-        /*El swap genera una combinación con alguno de los dos items*/
-        if (matchA.validMatch)
-        {
-            yield return StartCoroutine(DestroyItems(matchA.match));
-            yield return new WaitForSeconds(delayBetweenMatches);
-            yield return StartCoroutine(UpdateGrid());
-            if (b != null)
-            {
-                matchB = GetMatchInformation(b);
-                if (matchB.validMatch)
-                {
-                    yield return StartCoroutine(DestroyItems(matchB.match));
-                    yield return new WaitForSeconds(delayBetweenMatches);
-                    yield return StartCoroutine(UpdateGrid());
-                }
-            }
-        }
-        else if (matchB.validMatch)
-        {
-            yield return StartCoroutine(DestroyItems(matchB.match));
-            yield return new WaitForSeconds(delayBetweenMatches);
-            yield return StartCoroutine(UpdateGrid());
-            if (a != null)
-            {
-                matchB = GetMatchInformation(a);
-                if (matchA.validMatch)
-                {
-                    yield return StartCoroutine(DestroyItems(matchA.match));
-                    yield return new WaitForSeconds(delayBetweenMatches);
-                    yield return StartCoroutine(UpdateGrid());
-                }
-            }
-        }
-        canPlay = true;
-		//print (DetectPossibleSwaps ());
-
-    }
-
-    /*Destruir los items de una combinación*/
-    IEnumerator DestroyItems (List<GridItem> items)
+	/*Destruir los items de una combinación*/
+	IEnumerator DestroyItems (List<GridItem> items)
 	{
 		foreach (GridItem i in items) {
 			int xtest = i.x;
@@ -452,8 +440,8 @@ public class GameGrid : MonoBehaviour
 			this.items [xtest, ytest] = null;
 		}
 
-        sliders[items[0].id].SumarValor(0.1f);
-    }
+		sliders [items [0].id].SumarValor (0.1f);
+	}
 
 	/*Actualizar indices después de una combinación*/
 	IEnumerator UpdateIndexes ()
@@ -469,7 +457,7 @@ public class GameGrid : MonoBehaviour
 						if (currentItem != null) {							
 							items [column, lookup] = null;
 							items [column, row] = currentItem;
-							currentItem.OnItemPositionChanged (column,row); //Actualizar posición
+							currentItem.OnItemPositionChanged (column, row); //Actualizar posición
 							break;
 						}
 					}
@@ -496,8 +484,8 @@ public class GameGrid : MonoBehaviour
 	/*Función para actualizar la cuadricula después de una combinación*/
 	IEnumerator UpdateGrid ()
 	{
-		yield return StartCoroutine (UpdateIndexes());
-		yield return StartCoroutine (RefillGrid());
+		yield return StartCoroutine (UpdateIndexes ());
+		yield return StartCoroutine (RefillGrid ());
 		yield return new WaitForSeconds (delayToCheck);
 		for (int x = 0; x < xSize; x++) {
 			for (int y = 0; y < ySize; y++) {
@@ -512,22 +500,21 @@ public class GameGrid : MonoBehaviour
 		}
 	}
 
-    /*Realizar un swap entre dos items*/
-    IEnumerator Swap(GridItem a, GridItem b)
-    {
+	/*Realizar un swap entre dos items*/
+	IEnumerator Swap (GridItem a, GridItem b)
+	{
+		ChangeRigidBodyStatus (false); //Desactivar todos los cuerpos rigidos
 
-        ChangeRigidBodyStatus(false); //Desactivar todos los cuerpos rigidos
+		/*Swap entre los dos items*/
+		float movDuration = 0.25f; //Duración del efecto de movimiento
+		Vector3 aPosition = a.transform.position;
+		//Vector3 bPosition = b.transform.position;
+		StartCoroutine (a.transform.Move (b.transform.position, movDuration));
+		StartCoroutine (b.transform.Move (aPosition, movDuration));
+		yield return new WaitForSeconds (movDuration); //Esperar que se realice el movimiento
 
-        /*Swap entre los dos items*/
-         float movDuration = 0.25f; //Duración del efecto de movimiento
-         Vector3 aPosition = a.transform.position;
-         //Vector3 bPosition = b.transform.position;
-         StartCoroutine (a.transform.Move (b.transform.position, movDuration));
-         StartCoroutine (b.transform.Move (aPosition, movDuration));
-         yield return new WaitForSeconds (movDuration); //Esperar que se realice el movimiento
-
-         SwapIndices (a, b); //Hacer el swap entre los indices de la grid 
-         ChangeRigidBodyStatus (true); //Activar de nuevo todos los cuerpos rigidos 
+		SwapIndices (a, b); //Hacer el swap entre los indices de la grid 
+		ChangeRigidBodyStatus (true); //Activar de nuevo todos los cuerpos rigidos 
 	}
     
 	/*Hacer el intercambio de los indices de los items en la matriz*/
@@ -552,34 +539,8 @@ public class GameGrid : MonoBehaviour
 		}
 	}
 
-	void PrintItems ()
+	bool DetectPossibleSwaps ()
 	{
-		for (int x = 0; x < xSize; x++) {
-			for (int y = 0; y < ySize; y++) {	
-				
-				if (items [x, y] != null) {
-					//Debug.Log (string.Format ("{0} {1}", x, y));
-					print(items[x,y].id);
-				}
-			}
-		}
-	}
-
-	public void CheckIndices ()
-	{
-		for (int x = 0; x < xSize; x++) {
-			for (int y = 0; y < ySize; y++) {	
-				int xTemporal = items [x, y].x;
-				int yTemporal = items [x, y].y;
-				if (xTemporal != x || yTemporal != y) {
-					Debug.Log (string.Format ("{0} {1}", x, y));
-				}
-
-			}
-		}
-	}
-
-	bool DetectPossibleSwaps(){
 		//X --> Columna en la vista, fila en la matriz
 		//Y --> Fila en la vista, columna en la matriz
 		for (int x = 0; x < xSize; x++) {
@@ -614,7 +575,6 @@ public class GameGrid : MonoBehaviour
 					MatchInfo matchNear = GetMatchInformation (nearItem); 
 					SwapIndices (currentItem, nearItem);
 					if (matchCurrent.validMatch || matchNear.validMatch) {	
-						print (x + "-" + y);
 						return true;	
 					}
 				}
@@ -623,7 +583,102 @@ public class GameGrid : MonoBehaviour
 		return false;
 	}
 
-	void printName(int id){
+	/*Revolver la cuadricula cuando no existan movimientos*/
+	public void ShuffleGrid ()
+	{
+		ChangeRigidBodyStatus (false); //Desactivar todos los cuerpos rígidos
+		StartCoroutine(AnimateShuffle());	//
+		//ChangeRigidBodyStatus (true);
+	}
+
+	/*Revolver los items*/
+	IEnumerator ShuffleItems(int numItems){
+		//randomId = Random.Range (0, fruits.Length);
+		GridItem lastPosition, newPosition; //Items to swap
+		int randomPositionX, randomPositionY, randomNumber; //Enteros para generar las posiciones aleatorias
+		float movDuration = 0.1f; //Duración del efecto de movimiento
+
+		/*Para cada item se genera una nueva posicion aleatoria, y se hace el swap con el elemento en dicha posicion*/
+		for (int x = 0; x < xSize; x++) {			
+			for (int y = 0; y < ySize; y++) {
+				lastPosition = items [x, y];
+
+				/*Generar la nueva posicion aleatoria*/
+				randomNumber = Random.Range (0, numItems);
+				randomPositionX = randomNumber % xSize;
+				randomPositionY = randomNumber / xSize;
+				newPosition = items [randomPositionX, randomPositionY];
+
+				/*Realizar el swap entre las dos posiciones*/
+				Vector3 lastPos = lastPosition.transform.position;
+				StartCoroutine (lastPosition.transform.Move (newPosition.transform.position, movDuration));
+				StartCoroutine (newPosition.transform.Move (lastPos, movDuration));
+				SwapIndices (lastPosition,newPosition); //Hacer el swap entre los indices de la grid 
+				yield return new WaitForSeconds (movDuration); //Esperar que se realice el movimiento
+			}
+		}
+	}
+
+	/*Animación para cuando el jugador se queda sin combinaciones y se debe revolver los items de la cuadricula*/
+	IEnumerator AnimateShuffle()
+	{
+		foreach (GridItem item in items) {
+			//StartCoroutine (item.transform.Scale (new Vector3(0.5f,0.5f,0.5f),1f)); //Reducir tamaño (efecto visual)
+			StartCoroutine(item.transform.Scale(Vector3.zero,3f)); //Reducir tamaño (efecto visual)
+			StartCoroutine(item.transform.Spin(23f,4f)); //Poner a rotar los items
+		}
+
+		/*Revolver los items y esperar que se revuelva toda la cuadricula*/
+		StartCoroutine( ShuffleItems(xSize * ySize));
+		yield return new WaitForSeconds (3f);
+
+		/*Aumentar el tamaño 5 veces*/
+		foreach (GridItem item in items) {			
+			StartCoroutine (item.transform.Scale (new Vector3(5,5,5), 0.4f));		
+		}
+
+		yield return new WaitForSeconds (0.5f); //Esperar un corto tiempo para empezar la otra animación
+
+		/*Reducir los items a su tamaño original*/
+		foreach (GridItem item in items) {						
+			StartCoroutine (item.transform.Scale (Vector3.one, 0.4f));
+		}
+
+	}
+
+	/*Funciones Auxiliares*/
+
+	/*Imprime el id de cada alimento*/
+	void PrintItems ()
+	{
+		for (int x = 0; x < xSize; x++) {
+			for (int y = 0; y < ySize; y++) {	
+
+				if (items [x, y] != null) {
+					//Debug.Log (string.Format ("{0} {1}", x, y));
+					print (items [x, y].id);
+				}
+			}
+		}
+	}
+
+	public void CheckIndices ()
+	{
+		for (int x = 0; x < xSize; x++) {
+			for (int y = 0; y < ySize; y++) {	
+				int xTemporal = items [x, y].x;
+				int yTemporal = items [x, y].y;
+				if (xTemporal != x || yTemporal != y) {
+					Debug.Log (string.Format ("{0} {1}", x, y));
+				}
+
+			}
+		}
+	}
+
+	/*Método auxiliar para probar con mayor facilidad otros métodos*/
+	void printName (int id)
+	{
 		switch (id) {
 		case 0:
 			print ("Uvas");
