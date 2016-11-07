@@ -47,6 +47,7 @@
   <ItemGroup>
      <Compile Include="Assets\Scripts\ControlSlider.cs" />
      <Compile Include="Assets\Scripts\Corutina.cs" />
+     <Compile Include="Assets\Scripts\Extensions\SpriteExtension.cs" />
      <Compile Include="Assets\Scripts\Extensions\TransformExtensions.cs" />
      <Compile Include="Assets\Scripts\GameGrid.cs" />
      <Compile Include="Assets\Scripts\GameTime.cs" />

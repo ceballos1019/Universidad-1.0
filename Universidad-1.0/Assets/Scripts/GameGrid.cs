@@ -12,6 +12,7 @@ public class GameGrid : MonoBehaviour
 	private GameObject[] fruits;
 	private GridItem[,] items;
 	private GridItem currentlySelectedItem;
+	private GridItem[] possibleSwap = new GridItem[2];
 	public static int minItemsForMatch = 3;
 	public float delayBetweenMatches = 0.2f;
 	public float delayToCheck = 0.4f;
@@ -51,6 +52,7 @@ public class GameGrid : MonoBehaviour
 	{
 		/*Cargar las imagenes*/
 		fruits = Resources.LoadAll<GameObject> ("Prefabs/Food");
+		//fruits = Resources.LoadAll<GameObject>("Prefabs/Desayuno");
 
 		/*Asignar un id a cada imagen*/
 		for (int i = 0; i < fruits.Length; i++) {
@@ -332,6 +334,7 @@ public class GameGrid : MonoBehaviour
 	/*Intentar una jugada*/
 	IEnumerator TryMatch (GridItem a, GridItem b)
 	{
+		CancelInvoke ();
 		canPlay = false; //Deshabilitar jugadas nuevas mientras termina la actual
 		yield return StartCoroutine (Swap (a, b));  //Hacer el swap
 
@@ -343,6 +346,7 @@ public class GameGrid : MonoBehaviour
 		if (!matchA.validMatch && !matchB.validMatch) {
 			yield return StartCoroutine (Swap (a, b));
 			canPlay = true;
+			Invoke ("ShowPossibleSwap", 5f);
 			yield break;
 		}
 
@@ -372,12 +376,16 @@ public class GameGrid : MonoBehaviour
 				}
 			}
 		}
-		canPlay = true; //Habilitar las jugadas de nuevo
 
 		/*Validar si existen posibles jugadas y revolver los items en caso de que no existan*/
 		if (!DetectPossibleSwaps ()) {
+			yield return new WaitForSeconds (2f);
 			ShuffleGrid ();
 		}
+
+		canPlay = true; //Habilitar las jugadas de nuevo
+		InvokeRepeating ("ShowPossibleSwap", 5f,2f);
+
 	}
 
 	/*Intentar una jugada arrastrando los objetos*/
@@ -425,6 +433,7 @@ public class GameGrid : MonoBehaviour
 		canPlay = true;
 		/*Validar si existen posibles jugadas y revolver los items en caso de que no existan*/
 		if (!DetectPossibleSwaps ()) {
+			yield return new WaitForSeconds (2f);
 			ShuffleGrid ();
 		}
 	}
@@ -557,7 +566,8 @@ public class GameGrid : MonoBehaviour
 					MatchInfo matchNear = GetMatchInformation (nearItem); 
 					SwapIndices (currentItem, nearItem);
 					if (matchCurrent.validMatch || matchNear.validMatch) {	
-						print (x + "-" + y);
+						possibleSwap [0] = currentItem;
+						possibleSwap [1] = nearItem;
 						return true;	
 					}
 
@@ -574,7 +584,9 @@ public class GameGrid : MonoBehaviour
 					MatchInfo matchCurrent = GetMatchInformation (currentItem); 
 					MatchInfo matchNear = GetMatchInformation (nearItem); 
 					SwapIndices (currentItem, nearItem);
-					if (matchCurrent.validMatch || matchNear.validMatch) {	
+					if (matchCurrent.validMatch || matchNear.validMatch) {
+						possibleSwap [0] = currentItem;
+						possibleSwap [1] = nearItem;	
 						return true;	
 					}
 				}
@@ -596,13 +608,12 @@ public class GameGrid : MonoBehaviour
 		//randomId = Random.Range (0, fruits.Length);
 		GridItem lastPosition, newPosition; //Items to swap
 		int randomPositionX, randomPositionY, randomNumber; //Enteros para generar las posiciones aleatorias
-		float movDuration = 0.1f; //Duración del efecto de movimiento
+		float movDuration = 0.3f; //Duración del efecto de movimiento
 
 		/*Para cada item se genera una nueva posicion aleatoria, y se hace el swap con el elemento en dicha posicion*/
-		for (int x = 0; x < xSize; x++) {			
-			for (int y = 0; y < ySize; y++) {
+		for (int x = 1; x < xSize-1; x++) {			
+			for (int y = 1; y < ySize-1; y++) {
 				lastPosition = items [x, y];
-
 				/*Generar la nueva posicion aleatoria*/
 				randomNumber = Random.Range (0, numItems);
 				randomPositionX = randomNumber % xSize;
@@ -624,13 +635,13 @@ public class GameGrid : MonoBehaviour
 	{
 		foreach (GridItem item in items) {
 			//StartCoroutine (item.transform.Scale (new Vector3(0.5f,0.5f,0.5f),1f)); //Reducir tamaño (efecto visual)
-			StartCoroutine(item.transform.Scale(Vector3.zero,3f)); //Reducir tamaño (efecto visual)
+			StartCoroutine(item.transform.Scale(Vector3.zero,4f)); //Reducir tamaño (efecto visual)
 			StartCoroutine(item.transform.Spin(23f,4f)); //Poner a rotar los items
 		}
 
 		/*Revolver los items y esperar que se revuelva toda la cuadricula*/
 		StartCoroutine( ShuffleItems(xSize * ySize));
-		yield return new WaitForSeconds (3f);
+		yield return new WaitForSeconds (4f);
 
 		/*Aumentar el tamaño 5 veces*/
 		foreach (GridItem item in items) {			
@@ -644,6 +655,25 @@ public class GameGrid : MonoBehaviour
 			StartCoroutine (item.transform.Scale (Vector3.one, 0.4f));
 		}
 
+	}
+
+	void ShowPossibleSwap(){
+		ChangeRigidBodyStatus (false);
+		StartCoroutine (AnimatePossibleSwap ());
+		//ChangeRigidBodyStatus (true);
+	}
+
+	IEnumerator AnimatePossibleSwap(){
+		foreach(GridItem item in possibleSwap){
+			StartCoroutine(item.GetComponent<SpriteRenderer> ().ChangeColor (new Vector4(1f,1f,1f,0.3f), 1f));	
+			StartCoroutine (item.transform.Scale (new Vector3 (1.3f, 1.3f, 1.3f), 1f));
+		}
+
+		yield return new WaitForSeconds (1f);
+		foreach(GridItem item in possibleSwap){
+			StartCoroutine(item.GetComponent<SpriteRenderer> ().ChangeColor (new Vector4(1f,1f,1f,1f), 1f));	
+			StartCoroutine (item.transform.Scale (Vector3.one, 1f));
+		}
 	}
 
 	/*Funciones Auxiliares*/

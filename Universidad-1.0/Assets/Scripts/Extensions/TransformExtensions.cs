@@ -8,7 +8,7 @@ public static class TransformExtension{
 		Vector3 diffVector = (target - t.position);
 		float diffLength = diffVector.magnitude;
 		diffVector.Normalize ();
-		float counter = 0;
+		float counter = 0f;
 		while (counter < duration) {
 			float nowAmount = (Time.deltaTime * diffLength)/duration;
 			t.position += diffVector * nowAmount;
@@ -24,7 +24,7 @@ public static class TransformExtension{
 		Vector3 diffVector = (target - t.localScale);
 		float diffLength = diffVector.magnitude;
 		diffVector.Normalize ();
-		float counter = 0;
+		float counter = 0f;
 		while (counter < duration) {
 			float nowAmount = (Time.deltaTime * diffLength)/duration;
 			t.localScale += diffVector * nowAmount;
@@ -37,7 +37,7 @@ public static class TransformExtension{
 	public static IEnumerator Spin(this Transform t, float speed, float duration)
 	{
 		float lastSpeed = speed/2;
-		float counter = 0;
+		float counter = 0f;
 		while (counter < duration) {
 			if (counter > (duration / 2)) {
 				t.localRotation *= Quaternion.Euler (0, 0, lastSpeed);	
@@ -48,8 +48,6 @@ public static class TransformExtension{
 			yield return null;
 		}
 		t.localRotation = Quaternion.Euler(0,0,0);
-		//yield return null;
 	}
-
 
 }
