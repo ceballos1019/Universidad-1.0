@@ -69,14 +69,32 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Scripts\AnimationMovement.cs" />
+    <Compile Include="Assets\Scripts\CameraJoystic.cs" />
+    <Compile Include="Assets\Scripts\Control.cs" />
     <Compile Include="Assets\Scripts\ControlSlider.cs" />
     <Compile Include="Assets\Scripts\Corutina.cs" />
+    <Compile Include="Assets\Scripts\Exit.cs" />
+    <Compile Include="Assets\Scripts\Extensions\SpriteExtension.cs" />
     <Compile Include="Assets\Scripts\Extensions\TransformExtensions.cs" />
     <Compile Include="Assets\Scripts\GameGrid.cs" />
     <Compile Include="Assets\Scripts\GameTime.cs" />
     <Compile Include="Assets\Scripts\GridItem.cs" />
     <Compile Include="Assets\Scripts\MatchInfo.cs" />
+    <Compile Include="Assets\Scripts\Menu.cs" />
+    <Compile Include="Assets\Scripts\NextCharacter.cs" />
+    <Compile Include="Assets\Scripts\Npc.cs" />
+    <Compile Include="Assets\Scripts\NpcDialogue.cs" />
+    <Compile Include="Assets\Scripts\NpcDialogue2.cs" />
+    <Compile Include="Assets\Scripts\NpcDialogue3.cs" />
+    <Compile Include="Assets\Scripts\Pause.cs" />
+    <Compile Include="Assets\Scripts\Play.cs" />
+    <Compile Include="Assets\Scripts\PreviousCharacter.cs" />
+    <Compile Include="Assets\Scripts\SelectCharacter.cs" />
+    <Compile Include="Assets\Scripts\SelectManager.cs" />
     <Compile Include="Assets\Scripts\Test.cs" />
+    <Compile Include="Assets\Scripts\ThirdPersonCamera.cs" />
+    <Compile Include="Assets\Scripts\VirtualJoystic.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\SyntaxTree\UnityVS\2015\UnityVS.CSharp.targets" />
 </Project>
