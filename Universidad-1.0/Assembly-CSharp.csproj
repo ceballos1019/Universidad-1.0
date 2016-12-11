@@ -64,6 +64,7 @@
      <Compile Include="Assets\Scripts\NpcDialogue2.cs" />
      <Compile Include="Assets\Scripts\NpcDialogue3.cs" />
      <Compile Include="Assets\Scripts\Pause.cs" />
+     <Compile Include="Assets\Scripts\PauseMenu.cs" />
      <Compile Include="Assets\Scripts\Play.cs" />
      <Compile Include="Assets\Scripts\PreviousCharacter.cs" />
      <Compile Include="Assets\Scripts\SelectCharacter.cs" />

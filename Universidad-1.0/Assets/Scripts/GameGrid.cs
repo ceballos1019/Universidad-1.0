@@ -346,7 +346,7 @@ public class GameGrid : MonoBehaviour
 		if (!matchA.validMatch && !matchB.validMatch) {
 			yield return StartCoroutine (Swap (a, b));
 			canPlay = true;
-			Invoke ("ShowPossibleSwap", 5f);
+			//Invoke ("ShowPossibleSwap", 5f);
 			yield break;
 		}
 
@@ -384,7 +384,7 @@ public class GameGrid : MonoBehaviour
 		}
 
 		canPlay = true; //Habilitar las jugadas de nuevo
-		InvokeRepeating ("ShowPossibleSwap", 5f,2f);
+		//InvokeRepeating ("ShowPossibleSwap", 5f,2f);
 
 	}
 
